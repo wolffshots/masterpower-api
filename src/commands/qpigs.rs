@@ -6,6 +6,7 @@ use crate::error::Result;
 use bytes::BytesMut;
 use std::str::from_utf8;
 use std::str::FromStr;
+use log::{debug};
 
 pub struct QPIGS;
 
@@ -54,7 +55,7 @@ pub enum DeviceChargingStatus {
 
 impl Response for QPIGSResponse {
     fn decode(src: &mut BytesMut) -> Result<Self> {
-        // println!("Input: {:?}", from_utf8(&src)?);
+        debug!("Input: {:?}", from_utf8(&src)?);
 
         // Extract indices
         let mut idxs = [0usize; 22];
@@ -86,7 +87,7 @@ impl Response for QPIGSResponse {
         let battery_discharge_current = usize::from_str(from_utf8(&src[idxs[14] + 1..idxs[15]])?)?;
         let device_status = &src[idxs[15] + 1..idxs[16]];
 
-        // println!("Remaining: {:?}", &src[idxs[16] + 1..]);
+        debug!("Remaining: {:?}", &src[idxs[16] + 1..]);
 
         Ok(Self {
             grid_voltage,
