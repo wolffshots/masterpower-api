@@ -147,7 +147,70 @@ pub enum SourcePriority {
 impl Response for QGPSResponse {
     fn decode(src: &mut BytesMut) -> Result<Self> {
         debug!("Input: {:?}", from_utf8(&src)?);
+        let parallel_units_connected: bool = true;
+        let serial_number: u64 = 0;
+        let operation_mode: OperationMode = OperationMode::LineMode;
+        let fault_code: u8 = 0;
+        let ac_input_votage: f32 = 0.0;
+        let ac_input_frequency: f32 = 0.0;
+        let ac_output_voltage: f32 = 0.0;
+        let ac_output_frequency: f32 = 0.0;
+        let ac_output_apparent_power: u16 = 0;
+        let ac_output_active_power: u16 = 0;
+        let percentage_of_nominal_output_power: u8 = 0;
+        let battery_voltage: f32 = 0.0;
+        let battery_charging_current: u8 = 0;
+        let battery_approx_state_of_charge: u8 = 0;
+        let pv_input_voltage: f32 = 0.0;
+        let total_charging_current: u8 = 0;
+        let total_ac_output_apparent_power: u16 = 0;
+        let total_ac_output_active_power: u16 = 0;
+        let total_percentage_of_nominal_output_power: u8 = 0;
+        let inverter_status = InverterStatus {
+           mppt_active: true,
+           ac_charging: true,
+           solar_charging: true,
+           battery_status: BatteryStatus::BatteryVoltageNormal,
+           ac_input: true,
+           ac_output: true,
+           reserved_bit: true, 
+        };
+        let ac_output_mode: ACOutputMode = ACOutputMode::ParallelOutput;
+        let battery_charging_source_priority: SourcePriority = SourcePriority::SolarFirst;
+        let max_charging_current_set: u8 = 0;
+        let max_charging_current_possible: u8 = 0;
+        let max_ac_charging_current_set: u8 = 0;
+        let pv_input_current: f32 = 0.0;
+        let battery_discharge_current: u8 = 0;
+
         Ok(Self {
+            parallel_units_connected,
+            serial_number,
+            operation_mode,
+            fault_code,
+            ac_input_votage,
+            ac_input_frequency,
+            ac_output_voltage,
+            ac_output_frequency,
+            ac_output_apparent_power,
+            ac_output_active_power,
+            percentage_of_nominal_output_power,
+            battery_voltage,
+            battery_charging_current,
+            battery_approx_state_of_charge,
+            pv_input_voltage,
+            total_charging_current,
+            total_ac_output_apparent_power,
+            total_ac_output_active_power,
+            total_percentage_of_nominal_output_power,
+            inverter_status,
+            ac_output_mode,
+            battery_charging_source_priority,
+            max_charging_current_set,
+            max_charging_current_possible,
+            max_ac_charging_current_set,
+            pv_input_current,
+            battery_discharge_current,
         })
     }
 }
