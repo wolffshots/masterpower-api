@@ -192,6 +192,7 @@ impl Response for QGPSResponse {
         debug!("Input: {:?}", from_utf8(&src)?);
 
         let mut idxs = [0usize; 27];
+        debug!("idxs before: {:?}", idxs);
         src.iter()
             .cloned()
             .enumerate()
@@ -200,9 +201,10 @@ impl Response for QGPSResponse {
                 idxs[num_idx] = byte_idx.0;
                 num_idx + 1
             });
-
+        debug!("idxs after: {:?}", idxs);
         let other_units_connected: bool = from_utf8(&src[0..idxs[0]])? == "1";
         let serial_number: u64 = u64::from_str(from_utf8(&src[idxs[0] + 1..idxs[1]])?)?;
+        debug!("serial number: {:?}", serial_number);
         let operation_mode: OperationMode = match from_utf8(&src[idxs[1] + 1..idxs[2]])? {
             "P" => OperationMode::PoweredOn,    // P
             "S" => OperationMode::StandbyMode,  // S
