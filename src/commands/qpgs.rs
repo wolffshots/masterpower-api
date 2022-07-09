@@ -191,7 +191,7 @@ impl Response for QGPSResponse {
     fn decode(src: &mut BytesMut) -> Result<Self> {
         debug!("Input: {:?}", from_utf8(&src)?);
 
-        let mut idxs = [0usize; 27];
+        let mut idxs = [0usize; 26]; // there are 27 entries but 26 indices
         debug!("idxs before: {:?}", idxs);
         src.iter()
             .cloned()
@@ -268,7 +268,7 @@ impl Response for QGPSResponse {
         let max_ac_charging_current_set: u8 =
             u8::from_str(from_utf8(&src[idxs[23] + 1..idxs[24]])?)?;
         let pv_input_current: f32 = f32::from_str(from_utf8(&src[idxs[24] + 1..idxs[25]])?)?;
-        let battery_discharge_current: u8 = u8::from_str(from_utf8(&src[idxs[25] + 1..idxs[26]])?)?;
+        let battery_discharge_current: u8 = u8::from_str(from_utf8(&src[idxs[25] + 1..])?)?;
 
         Ok(Self {
             other_units_connected,
