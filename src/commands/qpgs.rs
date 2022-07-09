@@ -1,29 +1,28 @@
 use crate::command::{Command, Response};
 use crate::error::{Result};
 use bytes::BytesMut;
-use bytes::BufMut;
 use serde_derive::Serialize;
 use std::str::from_utf8;
 use log::{debug};
 
-pub struct QPGS;
+pub struct QPGS0;
 
-impl Command for QPGS {
-    const PROTOCOL_ID: &'static [u8] = b"QPGS";
+impl Command for QPGS0 {
+    const PROTOCOL_ID: &'static [u8] = b"QPGS0";
     const COMMAND_NAME: &'static str = "QuerySpecificDeviceGeneralStatus";
 
     type Request = ();
     type Response = QGPSResponse;
 }
 
-pub trait Request {
-    fn encode(&self) -> Result<Option<BytesMut>> {
-        let mut buf = BytesMut::with_capacity(64);
-        buf.put_u8(b'h');
-        buf.put_u8(b'e');
-        buf.put(&b"llo"[..]);
-        Ok(Some(buf))
-    }
+pub struct QPGS1;
+
+impl Command for QPGS1 {
+    const PROTOCOL_ID: &'static [u8] = b"QPGS1";
+    const COMMAND_NAME: &'static str = "QuerySpecificDeviceGeneralStatus";
+
+    type Request = ();
+    type Response = QGPSResponse;
 }
 
 #[derive(Debug, PartialEq, Serialize)]
