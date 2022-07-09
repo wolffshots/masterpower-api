@@ -5,21 +5,21 @@ use serde_derive::Serialize;
 use std::str::from_utf8;
 use log::{debug};
 
-pub struct QPGS0;
-
-impl Command for QPGS0 {
-    const PROTOCOL_ID: &'static [u8] = b"QPGS0";
-    const COMMAND_NAME: &'static str = "QueryDeviceGeneralStatusPrimary";
-
-    type Request = ();
-    type Response = QGPSResponse;
-}
-
 pub struct QPGS1;
 
 impl Command for QPGS1 {
     const PROTOCOL_ID: &'static [u8] = b"QPGS1";
     const COMMAND_NAME: &'static str = "QueryDeviceGeneralStatusFirstAdditional";
+
+    type Request = ();
+    type Response = QGPSResponse;
+}
+
+pub struct QPGS0;
+
+impl Command for QPGS0 {
+    const PROTOCOL_ID: &'static [u8] = b"QPGS0";
+    const COMMAND_NAME: &'static str = "QueryDeviceGeneralStatusPrimary";
 
     type Request = ();
     type Response = QGPSResponse;
