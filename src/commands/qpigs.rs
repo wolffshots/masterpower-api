@@ -4,10 +4,10 @@ use crate::commands::qpigs::DeviceChargingStatus::{
 };
 use crate::error::{Error, Result};
 use bytes::BytesMut;
+use log::debug;
 use serde_derive::Serialize;
 use std::str::from_utf8;
 use std::str::FromStr;
-use log::{debug};
 
 pub struct QPIGS;
 

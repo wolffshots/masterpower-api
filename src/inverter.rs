@@ -2,7 +2,7 @@ use crate::codec::Codec;
 use crate::command::Command;
 use crate::error::{Error, Result};
 use bytes::{Buf, BytesMut};
-use log::{trace,debug};
+use log::{debug, trace};
 use tokio::io::{AsyncRead, AsyncWrite, ErrorKind};
 use tokio::prelude::*;
 use tokio_util::codec::{Decoder, Encoder};
