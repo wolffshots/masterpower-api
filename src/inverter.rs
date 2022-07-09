@@ -46,7 +46,7 @@ where
         self.stream.write_all(buf.bytes()).await?;
         debug!("Command written successfully");
 
-        debug!("Buffer contents before first read: {:?}", self.buffer_in);
+        // debug!("Buffer contents before first read: {:?}", self.buffer_in);
         Ok(loop {
             self.buffer_in.reserve(1024);
             let len = self.stream.read_buf(&mut self.buffer_in).await?;
@@ -54,8 +54,8 @@ where
                 return Err(Error::Io(ErrorKind::UnexpectedEof.into()));
             }
 
-            debug!("Read {} bytes from stream", len);
-            debug!("Calling decode with stream: {:?}", self.buffer_in);
+            // debug!("Read {} bytes from stream", len);
+            // debug!("Calling decode with stream: {:?}", self.buffer_in);
 
             if let Some(item) = codec.decode(&mut self.buffer_in)? {
                 break item;
