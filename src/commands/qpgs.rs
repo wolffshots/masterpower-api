@@ -1,6 +1,7 @@
 use crate::command::{Command, Response};
 use crate::error::{Result};
 use bytes::BytesMut;
+use bytes::BufMut;
 use serde_derive::Serialize;
 use std::str::from_utf8;
 use log::{debug};
@@ -13,6 +14,16 @@ impl Command for QPGS {
 
     type Request = ();
     type Response = QGPSResponse;
+}
+
+pub trait Request {
+    fn encode(&self) -> Result<Option<BytesMut>> {
+        let mut buf = BytesMut::with_capacity(64);
+        buf.put_u8(b'h');
+        buf.put_u8(b'e');
+        buf.put(&b"llo"[..]);
+        Ok(Some(buf))
+    }
 }
 
 #[derive(Debug, PartialEq, Serialize)]
