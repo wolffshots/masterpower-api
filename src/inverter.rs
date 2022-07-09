@@ -32,7 +32,7 @@ where
     S: AsyncRead + AsyncWrite + Unpin,
 {
     #[allow(unused)]
-    pub async fn execute<C: Command>(&mut self, req: C::Request, index: i8) -> Result<C::Response> {
+    pub async fn execute<C: Command>(&mut self, req: C::Request) -> Result<C::Response> {
         // TODO: Find a way to use the `Framed` facility.
 
         // Encode the message.
