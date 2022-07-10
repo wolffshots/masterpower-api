@@ -311,7 +311,7 @@ impl Response for QGPSResponse {
             u8::from_str(from_utf8(&src[idxs[23] + 1..idxs[24]])?)?;
         let pv_input_current: u8 = u8::from_str(from_utf8(&src[idxs[24] + 1..idxs[25]])?)?;
         let battery_discharge_current: u8 = u8::from_str(from_utf8(&src[idxs[25] + 1..])?)?;
-
+        debug!("finished QPGS - just calculating stats and packaging");
         Ok(Self {
             other_units_connected,
             serial_number,
