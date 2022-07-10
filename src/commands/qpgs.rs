@@ -1,7 +1,7 @@
 use crate::command::{Command, Response};
 use crate::error::Result;
 use bytes::BytesMut;
-use log::debug;
+use log::{debug, trace};
 use serde_derive::Serialize;
 use std::str::from_utf8;
 use std::str::FromStr;
@@ -61,7 +61,7 @@ pub struct QGPSResponse {
     pub max_charging_current_set: u8,                     // Adc
     pub max_charging_current_possible: u8,                // Adc
     pub max_ac_charging_current_set: u8,                  // Adc
-    pub pv_input_current: u8,                             // Adc
+    pub pv_input_current: f32,                            // Adc
     pub battery_discharge_current: u8,                    // Adc
 
     // manually calculated - not reported by qpgs directly
@@ -203,7 +203,7 @@ impl Response for QGPSResponse {
         debug!("Input: {:?}", from_utf8(&src)?);
 
         let mut idxs = [0usize; 26]; // there are 27 entries but 26 indices
-        debug!("idxs before: {:?}", idxs);
+        trace!("idxs before: {:?}", idxs);
         src.iter()
             .cloned()
             .enumerate()
@@ -212,10 +212,10 @@ impl Response for QGPSResponse {
                 idxs[num_idx] = byte_idx.0;
                 num_idx + 1
             });
-        debug!("idxs after: {:?}", idxs);
+        trace!("idxs after: {:?}", idxs);
         let other_units_connected: bool = from_utf8(&src[0..idxs[0]])? == "1";
         let serial_number: u64 = u64::from_str(from_utf8(&src[idxs[0] + 1..idxs[1]])?)?;
-        debug!("serial number: {:?}", serial_number);
+        trace!("serial number: {:?}", serial_number);
         let operation_mode: OperationMode = match from_utf8(&src[idxs[1] + 1..idxs[2]])? {
             "P" => OperationMode::PoweredOn,    // P
             "S" => OperationMode::StandbyMode,  // S
@@ -309,9 +309,9 @@ impl Response for QGPSResponse {
             u8::from_str(from_utf8(&src[idxs[22] + 1..idxs[23]])?)?;
         let max_ac_charging_current_set: u8 =
             u8::from_str(from_utf8(&src[idxs[23] + 1..idxs[24]])?)?;
-        let pv_input_current: u8 = u8::from_str(from_utf8(&src[idxs[24] + 1..idxs[25]])?)?;
+        let pv_input_current: f32 = f32::from_str(from_utf8(&src[idxs[24] + 1..idxs[25]])?)?;
         let battery_discharge_current: u8 = u8::from_str(from_utf8(&src[idxs[25] + 1..])?)?;
-        debug!("finished QPGS - just calculating stats and packaging");
+        trace!("finished QPGS - just calculating stats and packaging");
         Ok(Self {
             other_units_connected,
             serial_number,
@@ -340,7 +340,7 @@ impl Response for QGPSResponse {
             max_ac_charging_current_set,
             pv_input_current,
             battery_discharge_current,
-            pv_input_power: f32::from(pv_input_current) * pv_input_voltage,
+            pv_input_power: pv_input_current * pv_input_voltage,
             battery_charging_power: f32::from(battery_charging_current) * battery_voltage,
             battery_discharging_power: f32::from(battery_discharge_current) * battery_voltage,
         })
