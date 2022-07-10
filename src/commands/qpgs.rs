@@ -242,10 +242,9 @@ impl Response for QGPSResponse {
             u16::from_str(from_utf8(&src[idxs[16] + 1..idxs[17]])?)?;
         let total_percentage_of_nominal_output_power: u8 =
             u8::from_str(from_utf8(&src[idxs[17] + 1..idxs[18]])?)?;
-        let inverter_status = from_utf8(&src[idxs[17] + 1..idxs[18]])?;
+        let inverter_status = from_utf8(&src[idxs[18] + 1..idxs[19]])?;
         assert_eq!(inverter_status.len(), 8);
         let inverter_status = InverterStatus {
-            // 18..19
             mppt_active: match &inverter_status[0..1] {
                 "1" => State::Active,
                 "0" => State::Inactive,
