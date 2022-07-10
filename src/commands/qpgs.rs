@@ -67,13 +67,13 @@ pub struct QGPSResponse {
 
 #[derive(Debug, PartialEq, Serialize)]
 pub struct InverterStatus {
-    pub mppt_active: bool,
-    pub ac_charging: bool,
-    pub solar_charging: bool,
+    pub mppt_active: State,
+    pub ac_charging: State,
+    pub solar_charging: State,
     pub battery_status: BatteryStatus, // 2 chars
-    pub ac_input: bool,                // 0 available, 1 not available
-    pub ac_output: bool,
-    pub reserved_bit: bool,
+    pub ac_input: State,                // 0 available, 1 not available
+    pub ac_output: State,
+    pub reserved_bit: State,
 }
 
 #[derive(Debug, PartialEq, Serialize)]
@@ -187,6 +187,12 @@ pub enum SourcePriority {
     SolarOnly = 3,
 }
 
+#[derive(Debug, PartialEq, Serialize)]
+pub enum State {
+    Active,
+    Inactive
+}
+
 impl Response for QGPSResponse {
     fn decode(src: &mut BytesMut) -> Result<Self> {
         debug!("Input: {:?}", from_utf8(&src)?);
@@ -236,15 +242,47 @@ impl Response for QGPSResponse {
             u16::from_str(from_utf8(&src[idxs[16] + 1..idxs[17]])?)?;
         let total_percentage_of_nominal_output_power: u8 =
             u8::from_str(from_utf8(&src[idxs[17] + 1..idxs[18]])?)?;
+        let inverter_status = from_utf8(&src[idxs[17] + 1..idxs[18]])?;
+        assert_eq!(inverter_status.len(), 8);
         let inverter_status = InverterStatus {
             // 18..19
-            mppt_active: true,
-            ac_charging: true,
-            solar_charging: true,
-            battery_status: BatteryStatus::BatteryVoltageNormal,
-            ac_input: true,
-            ac_output: true,
-            reserved_bit: true,
+            mppt_active: match &inverter_status[0..1] {
+                "1" => State::Active,
+                "0" => State::Inactive,
+                _ => unreachable!()
+            },
+            ac_charging: match &inverter_status[1..2] {
+                "1" => State::Active,
+                "0" => State::Inactive,
+                _ => unreachable!()
+            },
+            solar_charging: match &inverter_status[2..3] {
+                "1" => State::Active,
+                "0" => State::Inactive,
+                _ => unreachable!()
+            },
+            battery_status: match &inverter_status[3..5] {
+                "00" => BatteryStatus::BatteryVoltageNormal,
+                "01" => BatteryStatus::BatteryVoltageLow,
+                "02" => BatteryStatus::BatteryDisconnected,
+                "03" => BatteryStatus::BatteryChargingAndDischargingDisabledByBattery,
+                _ => unreachable!()
+            },
+            ac_input: match &inverter_status[5..6] {
+                "1" => State::Active,
+                "0" => State::Inactive,
+                _ => unreachable!()
+            },
+            ac_output: match &inverter_status[6..7] {
+                "1" => State::Active,
+                "0" => State::Inactive,
+                _ => unreachable!()
+            },
+            reserved_bit: match &inverter_status[7..] {
+                "1" => State::Active,
+                "0" => State::Inactive,
+                _ => unreachable!()
+            },
         };
         let ac_output_mode: ACOutputMode =
             match u8::from_str(from_utf8(&src[idxs[19] + 1..idxs[20]])?)? {

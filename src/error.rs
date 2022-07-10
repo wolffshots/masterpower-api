@@ -21,6 +21,9 @@ pub enum Error {
     // QPIGS
     InvalidDeviceStatus,
 
+    // QPIGS
+    // TODO: add extra error cases for QPGS command
+
     // QPIRI
     InvalidDeviceBatteryType,
     InvalidDeviceInputVoltageRange,
