@@ -61,7 +61,7 @@ pub struct QGPSResponse {
     pub max_charging_current_set: u8,                     // Adc
     pub max_charging_current_possible: u8,                // Adc
     pub max_ac_charging_current_set: u8,                  // Adc
-    pub pv_input_current: u8,                            // Adc
+    pub pv_input_current: u8,                             // Adc
     pub battery_discharge_current: u8,                    // Adc
 
     // manually calculated - not reported by qpgs directly
@@ -342,7 +342,7 @@ impl Response for QGPSResponse {
             battery_discharge_current,
             pv_input_power: f32::from(pv_input_current) * pv_input_voltage,
             battery_charging_power: f32::from(battery_charging_current) * battery_voltage,
-            battery_discharging_power: f32::from(battery_discharge_current) * battery_voltage
+            battery_discharging_power: f32::from(battery_discharge_current) * battery_voltage,
         })
     }
 }
