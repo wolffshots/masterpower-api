@@ -71,7 +71,7 @@ pub struct InverterStatus {
     pub ac_charging: State,
     pub solar_charging: State,
     pub battery_status: BatteryStatus, // 2 chars
-    pub ac_input: State,                // 0 available, 1 not available
+    pub ac_input: State,               // 0 available, 1 not available
     pub ac_output: State,
     pub reserved_bit: State,
 }
@@ -190,7 +190,7 @@ pub enum SourcePriority {
 #[derive(Debug, PartialEq, Serialize)]
 pub enum State {
     Active,
-    Inactive
+    Inactive,
 }
 
 impl Response for QGPSResponse {
@@ -248,39 +248,39 @@ impl Response for QGPSResponse {
             mppt_active: match &inverter_status[0..1] {
                 "1" => State::Active,
                 "0" => State::Inactive,
-                _ => unreachable!()
+                _ => unreachable!(),
             },
             ac_charging: match &inverter_status[1..2] {
                 "1" => State::Active,
                 "0" => State::Inactive,
-                _ => unreachable!()
+                _ => unreachable!(),
             },
             solar_charging: match &inverter_status[2..3] {
                 "1" => State::Active,
                 "0" => State::Inactive,
-                _ => unreachable!()
+                _ => unreachable!(),
             },
             battery_status: match &inverter_status[3..5] {
                 "00" => BatteryStatus::BatteryVoltageNormal,
                 "01" => BatteryStatus::BatteryVoltageLow,
                 "02" => BatteryStatus::BatteryDisconnected,
                 "03" => BatteryStatus::BatteryChargingAndDischargingDisabledByBattery,
-                _ => unreachable!()
+                _ => unreachable!(),
             },
             ac_input: match &inverter_status[5..6] {
-                "1" => State::Active,
-                "0" => State::Inactive,
-                _ => unreachable!()
+                "0" => State::Active,   // available is 0
+                "1" => State::Inactive, // not available is 1
+                _ => unreachable!(),
             },
             ac_output: match &inverter_status[6..7] {
                 "1" => State::Active,
                 "0" => State::Inactive,
-                _ => unreachable!()
+                _ => unreachable!(),
             },
             reserved_bit: match &inverter_status[7..] {
                 "1" => State::Active,
                 "0" => State::Inactive,
-                _ => unreachable!()
+                _ => unreachable!(),
             },
         };
         let ac_output_mode: ACOutputMode =
