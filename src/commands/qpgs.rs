@@ -61,8 +61,13 @@ pub struct QGPSResponse {
     pub max_charging_current_set: u8,                     // Adc
     pub max_charging_current_possible: u8,                // Adc
     pub max_ac_charging_current_set: u8,                  // Adc
-    pub pv_input_current: f32,                            // Adc
+    pub pv_input_current: u8,                            // Adc
     pub battery_discharge_current: u8,                    // Adc
+
+    // manually calculated - not reported by qpgs directly
+    pub pv_input_power: f32,
+    pub battery_charging_power: f32,
+    pub battery_discharging_power: f32,
 }
 
 #[derive(Debug, PartialEq, Serialize)]
@@ -304,7 +309,7 @@ impl Response for QGPSResponse {
             u8::from_str(from_utf8(&src[idxs[22] + 1..idxs[23]])?)?;
         let max_ac_charging_current_set: u8 =
             u8::from_str(from_utf8(&src[idxs[23] + 1..idxs[24]])?)?;
-        let pv_input_current: f32 = f32::from_str(from_utf8(&src[idxs[24] + 1..idxs[25]])?)?;
+        let pv_input_current: u8 = u8::from_str(from_utf8(&src[idxs[24] + 1..idxs[25]])?)?;
         let battery_discharge_current: u8 = u8::from_str(from_utf8(&src[idxs[25] + 1..])?)?;
 
         Ok(Self {
@@ -335,6 +340,9 @@ impl Response for QGPSResponse {
             max_ac_charging_current_set,
             pv_input_current,
             battery_discharge_current,
+            pv_input_power: f32::from(pv_input_current) * pv_input_voltage,
+            battery_charging_power: f32::from(battery_charging_current) * battery_voltage,
+            battery_discharging_power: f32::from(battery_discharge_current) * battery_voltage
         })
     }
 }
