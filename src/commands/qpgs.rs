@@ -40,7 +40,7 @@ pub struct QGPSResponse {
     pub serial_number: u64,
     pub operation_mode: OperationMode,
     pub fault_code: FaultCode,                        // 00 - 86
-    pub ac_input_votage: f32,                         // Vac
+    pub ac_input_voltage: f32,                         // Vac
     pub ac_input_frequency: f32,                      // Hz
     pub ac_output_voltage: f32,                       // Vac
     pub ac_output_frequency: f32,                     // Hz
@@ -227,7 +227,7 @@ impl Response for QGPSResponse {
         };
         let fault_code = u8::from_str(from_utf8(&src[idxs[2] + 1..idxs[3]])?)?;
         let fault_code: FaultCode = u8_to_fault_code(fault_code);
-        let ac_input_votage: f32 = f32::from_str(from_utf8(&src[idxs[3] + 1..idxs[4]])?)?;
+        let ac_input_voltage: f32 = f32::from_str(from_utf8(&src[idxs[3] + 1..idxs[4]])?)?;
         let ac_input_frequency: f32 = f32::from_str(from_utf8(&src[idxs[4] + 1..idxs[5]])?)?;
         let ac_output_voltage: f32 = f32::from_str(from_utf8(&src[idxs[5] + 1..idxs[6]])?)?;
         let ac_output_frequency: f32 = f32::from_str(from_utf8(&src[idxs[6] + 1..idxs[7]])?)?;
@@ -317,7 +317,7 @@ impl Response for QGPSResponse {
             serial_number,
             operation_mode,
             fault_code,
-            ac_input_votage,
+            ac_input_voltage,
             ac_input_frequency,
             ac_output_voltage,
             ac_output_frequency,
