@@ -49,7 +49,9 @@ where
         trace!("Buffer contents before first read: {:?}", self.buffer_in);
         Ok(loop {
             self.buffer_in.reserve(1024);
+            trace!("Buffer reserved");
             let len = self.stream.read_buf(&mut self.buffer_in).await?;
+            trace!("Buffer read");
             if len == 0 {
                 return Err(Error::Io(ErrorKind::UnexpectedEof.into()));
             }
@@ -60,6 +62,7 @@ where
             if let Some(item) = codec.decode(&mut self.buffer_in)? {
                 break item;
             }
+            trace!("Looping to read buffer");
         })
     }
 }
