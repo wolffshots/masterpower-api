@@ -54,7 +54,7 @@ where
                 return Err(Error::Io(ErrorKind::UnexpectedEof.into()));
             }
 
-            // debug!("Read {} bytes from stream", len);
+            trace!("Read {} bytes from stream", len);
             // debug!("Calling decode with stream: {:?}", self.buffer_in);
 
             if let Some(item) = codec.decode(&mut self.buffer_in)? {
