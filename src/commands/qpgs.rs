@@ -203,7 +203,6 @@ impl Response for QGPSResponse {
         debug!("Input: {:?}", from_utf8(&src)?);
 
         let mut idxs = [0usize; 26]; // there are 27 entries but 26 indices
-        trace!("idxs before: {:?}", idxs);
         src.iter()
             .cloned()
             .enumerate()
@@ -212,10 +211,8 @@ impl Response for QGPSResponse {
                 idxs[num_idx] = byte_idx.0;
                 num_idx + 1
             });
-        trace!("idxs after: {:?}", idxs);
         let other_units_connected: bool = from_utf8(&src[0..idxs[0]])? == "1";
         let serial_number: u64 = u64::from_str(from_utf8(&src[idxs[0] + 1..idxs[1]])?)?;
-        trace!("serial number: {:?}", serial_number);
         let operation_mode: OperationMode = match from_utf8(&src[idxs[1] + 1..idxs[2]])? {
             "P" => OperationMode::PoweredOn,    // P
             "S" => OperationMode::StandbyMode,  // S
@@ -311,7 +308,6 @@ impl Response for QGPSResponse {
             u8::from_str(from_utf8(&src[idxs[23] + 1..idxs[24]])?)?;
         let pv_input_current: f32 = f32::from_str(from_utf8(&src[idxs[24] + 1..idxs[25]])?)?;
         let battery_discharge_current: u8 = u8::from_str(from_utf8(&src[idxs[25] + 1..])?)?;
-        trace!("finished QPGS - just calculating stats and packaging");
         Ok(Self {
             other_units_connected,
             serial_number,
