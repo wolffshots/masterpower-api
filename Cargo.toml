@@ -1,14 +1,14 @@
 [package]
 name = "masterpower-api"
 version = "0.1.0"
-authors = ["Esteve Soler Arderiu <soler.arderiu@gmail.com>"]
+authors = ["Esteve Soler Arderiu <soler.arderiu@gmail.com>", "jadon <16850875+wolffshots@users.noreply.github.com>"]
 edition = "2018"
 
 [dependencies]
-bytes = "0.5.6"
+bytes = "^0.5"
 crc-any = "2.3.5"
 log = "0.4.11"
-tokio = { version = "0.2.22", features = ["full"] }
+tokio = { version = "^0.2", features = ["full"] }
 tokio-util = { version = "0.3.1", features = ["codec"] }
 serde = "^1.0.8"
 serde_derive = "^1.0.8"
