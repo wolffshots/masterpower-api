@@ -44,9 +44,9 @@ where
         trace!("Writing command to stream");
         self.stream.flush().await?;
         self.stream.write_all(buf.bytes()).await?;
-        debug!("Command written successfully");
+        trace!("Command written successfully");
 
-        // debug!("Buffer contents before first read: {:?}", self.buffer_in);
+        trace!("Buffer contents before first read: {:?}", self.buffer_in);
         Ok(loop {
             self.buffer_in.reserve(1024);
             let len = self.stream.read_buf(&mut self.buffer_in).await?;
