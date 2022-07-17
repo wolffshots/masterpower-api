@@ -1,7 +1,7 @@
 use crate::command::{Command, Response};
 use crate::error::Result;
 use bytes::BytesMut;
-use log::{debug, trace};
+use log::debug;
 use serde_derive::Serialize;
 use std::str::from_utf8;
 use std::str::FromStr;
@@ -344,14 +344,10 @@ mod test {
         u8_to_fault_code, ACOutputMode, BatteryStatus, FaultCode, InverterStatus, OperationMode,
         QPGSResponse, SourcePriority, State, QPGS0, QPGS1, QPGS2,
     };
-    use crate::commands::qpigs::DeviceChargingStatus::{
-        ChargingFromAC, ChargingFromSCC, ChargingFromSCCAndAC, NotCharging,
-    };
     use crate::error::Result;
     use bytes::{Buf, BytesMut};
-    use crc_any::CRCu16;
-    use rand::{random, thread_rng, Rng};
-    use tokio_util::codec::{Decoder, Encoder};
+    use rand::{thread_rng, Rng};
+    use tokio_util::codec::Encoder;
 
     #[test]
     fn test_enum_matches_values() -> Result<()> {

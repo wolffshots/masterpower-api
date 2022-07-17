@@ -76,8 +76,9 @@ where
 
                 for step in 0..3 {
                     // Check the CRC for the current detected payload.
-                    let crc_sum = Self::compute_crc(&item[..item.len() - 2]);
-                    if crc_sum == (&item[item.len() - 2..]).get_u16() {
+                    let crc_expected = Self::compute_crc(&item[..item.len() - 2]);
+                    let crc_actual = (&item[item.len() - 2..]).get_u16();
+                    if crc_expected == crc_actual {
                         break;
                     }
 
@@ -100,7 +101,7 @@ where
                         }
                     {
                         src.advance(src.len());
-                        return Err(Error::InvalidResponseCrcSum);
+                        return Err(Error::InvalidResponseCrcSum(crc_expected, crc_actual));
                     }
 
                     item = &src[..index + step + 1];
