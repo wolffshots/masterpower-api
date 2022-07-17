@@ -15,7 +15,7 @@ impl Command for QPGS0 {
     const COMMAND_NAME: &'static str = "QueryDeviceGeneralStatusCurrent";
 
     type Request = ();
-    type Response = QGPSResponse;
+    type Response = QPGSResponse;
 }
 
 impl Command for QPGS1 {
@@ -23,7 +23,7 @@ impl Command for QPGS1 {
     const COMMAND_NAME: &'static str = "QueryDeviceGeneralStatusPrimary";
 
     type Request = ();
-    type Response = QGPSResponse;
+    type Response = QPGSResponse;
 }
 
 impl Command for QPGS2 {
@@ -31,16 +31,16 @@ impl Command for QPGS2 {
     const COMMAND_NAME: &'static str = "QueryDeviceGeneralStatusSecondary";
 
     type Request = ();
-    type Response = QGPSResponse;
+    type Response = QPGSResponse;
 }
 
 #[derive(Debug, PartialEq, Serialize)]
-pub struct QGPSResponse {
+pub struct QPGSResponse {
     pub other_units_connected: bool,
     pub serial_number: u64,
     pub operation_mode: OperationMode,
     pub fault_code: FaultCode,                        // 00 - 86
-    pub ac_input_voltage: f32,                         // Vac
+    pub ac_input_voltage: f32,                        // Vac
     pub ac_input_frequency: f32,                      // Hz
     pub ac_output_voltage: f32,                       // Vac
     pub ac_output_frequency: f32,                     // Hz
@@ -178,13 +178,6 @@ fn u8_to_fault_code(fault_code: u8) -> FaultCode {
     }
 }
 
-#[test]
-fn test_enum_matches_values() -> Result<()> {
-    assert_eq!(FaultCode::ACOutputModeInconsistent as u8, 86);
-    assert_eq!(FaultCode::OverCurrent, u8_to_fault_code(51));
-    Ok(())
-}
-
 #[derive(Debug, PartialEq, Serialize)]
 pub enum SourcePriority {
     SolarFirst = 1,
@@ -198,7 +191,7 @@ pub enum State {
     Inactive,
 }
 
-impl Response for QGPSResponse {
+impl Response for QPGSResponse {
     fn decode(src: &mut BytesMut) -> Result<Self> {
         debug!("Input: {:?}", from_utf8(&src)?);
 
@@ -340,5 +333,243 @@ impl Response for QGPSResponse {
             battery_charging_power: f32::from(battery_charging_current) * battery_voltage,
             battery_discharging_power: f32::from(battery_discharge_current) * battery_voltage,
         })
+    }
+}
+
+#[cfg(test)]
+mod test {
+    use crate::codec::Codec;
+    use crate::command::{Command, Request, Response};
+    use crate::commands::qpgs::{
+        u8_to_fault_code, ACOutputMode, BatteryStatus, FaultCode, InverterStatus, OperationMode,
+        QPGSResponse, SourcePriority, State, QPGS0, QPGS1, QPGS2,
+    };
+    use crate::commands::qpigs::DeviceChargingStatus::{
+        ChargingFromAC, ChargingFromSCC, ChargingFromSCCAndAC, NotCharging,
+    };
+    use crate::error::Result;
+    use bytes::{Buf, BytesMut};
+    use crc_any::CRCu16;
+    use rand::{random, thread_rng, Rng};
+    use tokio_util::codec::{Decoder, Encoder};
+
+    #[test]
+    fn test_enum_matches_values() -> Result<()> {
+        assert_eq!(FaultCode::ACOutputModeInconsistent as u8, 86);
+        assert_eq!(FaultCode::OverCurrent, u8_to_fault_code(51));
+        Ok(())
+    }
+
+    #[test]
+    fn test_qpgs0_payload_encode() -> Result<()> {
+        let req: <QPGS0 as Command>::Request = ();
+        assert_eq!(req.encode()?, None);
+        Ok(())
+    }
+
+    #[test]
+    fn test_qpgs1_payload_encode() -> Result<()> {
+        let req: <QPGS1 as Command>::Request = ();
+        assert_eq!(req.encode()?, None);
+        Ok(())
+    }
+
+    #[test]
+    fn test_qpgs2_payload_encode() -> Result<()> {
+        let req: <QPGS2 as Command>::Request = ();
+        assert_eq!(req.encode()?, None);
+        Ok(())
+    }
+
+    #[test]
+    fn test_qpgs_payload_decode() -> Result<()> {
+        let mut rng = thread_rng();
+        let serial_number: u64 = rng.gen_range(00000000000000, 99999999999999);
+        let ac_input_voltage: f32 = rng.gen_range(100.0, 999.9);
+        let ac_input_frequency: f32 = rng.gen_range(10.0, 99.9);
+        let res = format!("1 {} B 00 {} {} 000.0 00.00 0483 0480 009 49.2 000 050 026.1 000 00989 00959 009 00000010 1 1 060 080 10 00.0 009", 
+        serial_number,
+        ac_input_voltage,
+        ac_input_frequency
+        ).into_bytes();
+        let mut buf = BytesMut::from(res.as_slice());
+        let item = <QPGS0 as Command>::Response::decode(&mut buf)?;
+        assert_eq!(
+            item,
+            QPGSResponse {
+                other_units_connected: true,
+                serial_number: serial_number,
+                operation_mode: OperationMode::BatteryMode,
+                fault_code: FaultCode::NoFault,            // 00 - 86
+                ac_input_voltage: ac_input_voltage,        // Vac
+                ac_input_frequency: ac_input_frequency,    // Hz
+                ac_output_voltage: 000.0f32,               // Vac
+                ac_output_frequency: 00.00f32,             // Hz
+                ac_output_apparent_power: 0483u16,         // VA
+                ac_output_active_power: 0480u16,           // W
+                percentage_of_nominal_output_power: 009u8, // %
+                battery_voltage: 49.2f32,                  // Vdc
+                battery_charging_current: 000u8,           // Adc
+                battery_approx_state_of_charge: 050u8,     // %
+                pv_input_voltage: 026.1f32,                // Vdc
+                total_charging_current: 000u8,             // sum of Adc for all units
+                total_ac_output_apparent_power: 00989u16,  // sum of VA for all units
+                total_ac_output_active_power: 00959u16,    // sum of W for all units
+                total_percentage_of_nominal_output_power: 009u8, // average of % for all units
+                inverter_status: InverterStatus {
+                    mppt_active: State::Inactive,
+                    ac_charging: State::Inactive,
+                    solar_charging: State::Inactive,
+                    battery_status: BatteryStatus::BatteryVoltageNormal, // 2 chars
+                    ac_input: State::Active, // 0 available, 1 not available
+                    ac_output: State::Active,
+                    reserved_bit: State::Inactive,
+                },
+                ac_output_mode: ACOutputMode::ParallelOutput, // 0 for single, 1 for parallel, other for three phase split
+                battery_charging_source_priority: SourcePriority::SolarFirst, // 1 solar first, 2 solar and utility, 3 solar only
+                max_charging_current_set: 060u8,                              // Adc
+                max_charging_current_possible: 080u8,                         // Adc
+                max_ac_charging_current_set: 10u8,                            // Adc
+                pv_input_current: 00.0f32,                                    // Adc
+                battery_discharge_current: 009u8,                             // Adc
+
+                // .anually calculated - not reported by qpgs directly
+                pv_input_power: 00.0f32 * 026.1f32,
+                battery_charging_power: f32::from(000u8) * 49.2f32,
+                battery_discharging_power: f32::from(009u8) * 49.2f32,
+            }
+        );
+
+        let mut buf = BytesMut::from(res.as_slice());
+        let item = <QPGS1 as Command>::Response::decode(&mut buf)?;
+        assert_eq!(
+            item,
+            QPGSResponse {
+                other_units_connected: true,
+                serial_number: serial_number,
+                operation_mode: OperationMode::BatteryMode,
+                fault_code: FaultCode::NoFault,            // 00 - 86
+                ac_input_voltage: ac_input_voltage,        // Vac
+                ac_input_frequency: ac_input_frequency,    // Hz
+                ac_output_voltage: 000.0f32,               // Vac
+                ac_output_frequency: 00.00f32,             // Hz
+                ac_output_apparent_power: 0483u16,         // VA
+                ac_output_active_power: 0480u16,           // W
+                percentage_of_nominal_output_power: 009u8, // %
+                battery_voltage: 49.2f32,                  // Vdc
+                battery_charging_current: 000u8,           // Adc
+                battery_approx_state_of_charge: 050u8,     // %
+                pv_input_voltage: 026.1f32,                // Vdc
+                total_charging_current: 000u8,             // sum of Adc for all units
+                total_ac_output_apparent_power: 00989u16,  // sum of VA for all units
+                total_ac_output_active_power: 00959u16,    // sum of W for all units
+                total_percentage_of_nominal_output_power: 009u8, // average of % for all units
+                inverter_status: InverterStatus {
+                    mppt_active: State::Inactive,
+                    ac_charging: State::Inactive,
+                    solar_charging: State::Inactive,
+                    battery_status: BatteryStatus::BatteryVoltageNormal, // 2 chars
+                    ac_input: State::Active, // 0 available, 1 not available
+                    ac_output: State::Active,
+                    reserved_bit: State::Inactive,
+                },
+                ac_output_mode: ACOutputMode::ParallelOutput, // 0 for single, 1 for parallel, other for three phase split
+                battery_charging_source_priority: SourcePriority::SolarFirst, // 1 solar first, 2 solar and utility, 3 solar only
+                max_charging_current_set: 060u8,                              // Adc
+                max_charging_current_possible: 080u8,                         // Adc
+                max_ac_charging_current_set: 10u8,                            // Adc
+                pv_input_current: 00.0f32,                                    // Adc
+                battery_discharge_current: 009u8,                             // Adc
+
+                // .anually calculated - not reported by qpgs directly
+                pv_input_power: 00.0f32 * 026.1f32,
+                battery_charging_power: f32::from(000u8) * 49.2f32,
+                battery_discharging_power: f32::from(009u8) * 49.2f32,
+            }
+        );
+
+        let mut buf = BytesMut::from(res.as_slice());
+        let item = <QPGS2 as Command>::Response::decode(&mut buf)?;
+        assert_eq!(
+            item,
+            QPGSResponse {
+                other_units_connected: true,
+                serial_number: serial_number,
+                operation_mode: OperationMode::BatteryMode,
+                fault_code: FaultCode::NoFault,            // 00 - 86
+                ac_input_voltage: ac_input_voltage,        // Vac
+                ac_input_frequency: ac_input_frequency,    // Hz
+                ac_output_voltage: 000.0f32,               // Vac
+                ac_output_frequency: 00.00f32,             // Hz
+                ac_output_apparent_power: 0483u16,         // VA
+                ac_output_active_power: 0480u16,           // W
+                percentage_of_nominal_output_power: 009u8, // %
+                battery_voltage: 49.2f32,                  // Vdc
+                battery_charging_current: 000u8,           // Adc
+                battery_approx_state_of_charge: 050u8,     // %
+                pv_input_voltage: 026.1f32,                // Vdc
+                total_charging_current: 000u8,             // sum of Adc for all units
+                total_ac_output_apparent_power: 00989u16,  // sum of VA for all units
+                total_ac_output_active_power: 00959u16,    // sum of W for all units
+                total_percentage_of_nominal_output_power: 009u8, // average of % for all units
+                inverter_status: InverterStatus {
+                    mppt_active: State::Inactive,
+                    ac_charging: State::Inactive,
+                    solar_charging: State::Inactive,
+                    battery_status: BatteryStatus::BatteryVoltageNormal, // 2 chars
+                    ac_input: State::Active, // 0 available, 1 not available
+                    ac_output: State::Active,
+                    reserved_bit: State::Inactive,
+                },
+                ac_output_mode: ACOutputMode::ParallelOutput, // 0 for single, 1 for parallel, other for three phase split
+                battery_charging_source_priority: SourcePriority::SolarFirst, // 1 solar first, 2 solar and utility, 3 solar only
+                max_charging_current_set: 060u8,                              // Adc
+                max_charging_current_possible: 080u8,                         // Adc
+                max_ac_charging_current_set: 10u8,                            // Adc
+                pv_input_current: 00.0f32,                                    // Adc
+                battery_discharge_current: 009u8,                             // Adc
+
+                // .anually calculated - not reported by qpgs directly
+                pv_input_power: 00.0f32 * 026.1f32,
+                battery_charging_power: f32::from(000u8) * 49.2f32,
+                battery_discharging_power: f32::from(009u8) * 49.2f32,
+            }
+        );
+
+        Ok(())
+    }
+
+    #[test]
+    fn test_qpgs0_command_encode() -> Result<()> {
+        let mut codec = Codec::<QPGS0>::new();
+
+        let mut buf = BytesMut::new();
+        codec.encode((), &mut buf)?;
+
+        assert_eq!(buf.bytes(), b"QPGS0\x3F\xDA\r");
+
+        Ok(())
+    }
+    #[test]
+    fn test_qpgs1_command_encode() -> Result<()> {
+        let mut codec = Codec::<QPGS1>::new();
+
+        let mut buf = BytesMut::new();
+        codec.encode((), &mut buf)?;
+
+        assert_eq!(buf.bytes(), b"QPGS1\x2F\xFB\r");
+
+        Ok(())
+    }
+    #[test]
+    fn test_qpgs2_command_encode() -> Result<()> {
+        let mut codec = Codec::<QPGS2>::new();
+
+        let mut buf = BytesMut::new();
+        codec.encode((), &mut buf)?;
+
+        assert_eq!(buf.bytes(), b"QPGS2\x1F\x98\r");
+
+        Ok(())
     }
 }

@@ -2,7 +2,7 @@ use crate::codec::Codec;
 use crate::command::Command;
 use crate::error::{Error, Result};
 use bytes::{Buf, BytesMut};
-use log::{trace};
+use log::trace;
 use tokio::io::{AsyncRead, AsyncWrite, ErrorKind};
 use tokio::prelude::*;
 use tokio_util::codec::{Decoder, Encoder};
@@ -45,7 +45,10 @@ where
         self.stream.flush().await?;
         self.stream.write_all(buf.bytes()).await?;
 
-        trace!("Command written successfully. Buffer contents before first read: {:?}", self.buffer_in);
+        trace!(
+            "Command written successfully. Buffer contents before first read: {:?}",
+            self.buffer_in
+        );
         Ok(loop {
             self.buffer_in.reserve(1024);
             let len = self.stream.read_buf(&mut self.buffer_in).await?;
