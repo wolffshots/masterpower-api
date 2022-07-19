@@ -20,6 +20,7 @@ use std::str::from_utf8;
 use std::str::FromStr;
 
 pub struct QPIRI;
+pub struct QPIRIReduced; // full compatibility with just ac in
 
 impl Command for QPIRI {
     const PROTOCOL_ID: &'static [u8] = b"QPIRI";
@@ -27,6 +28,14 @@ impl Command for QPIRI {
 
     type Request = ();
     type Response = QPIRIResponse;
+}
+
+impl Command for QPIRIReduced {
+    const PROTOCOL_ID: &'static [u8] = b"QPIRI";
+    const COMMAND_NAME: &'static str = "QueryDeviceRatingInformation";
+
+    type Request = ();
+    type Response = QPIRIReducedResponse;
 }
 
 #[derive(Debug, PartialEq, Serialize)]
@@ -53,6 +62,12 @@ pub struct QPIRIResponse {
     pub topology: Topology,
     pub output_mode: OutputMode,
     pub battery_redischarge_voltage: f32,
+}
+
+#[derive(Debug, PartialEq, Serialize)]
+pub struct QPIRIReducedResponse {
+    pub grid_rating_voltage: f32,
+    pub grid_rating_current: f32,
 }
 
 #[derive(Debug, PartialEq, Serialize)]
@@ -203,6 +218,32 @@ impl Response for QPIRIResponse {
                 _ => return Err(Error::InvalidDeviceOutputMode),
             },
             battery_redischarge_voltage,
+        })
+    }
+}
+
+impl Response for QPIRIReducedResponse {
+    fn decode(src: &mut BytesMut) -> Result<Self> {
+        // println!("Input: {:?}", from_utf8(&src)?);
+
+        // Extract indices
+        let mut idxs = [0usize; 30];
+        src.iter()
+            .cloned()
+            .enumerate()
+            .filter(|(_, x)| *x == ' ' as u8)
+            .fold(0, |num_idx, byte_idx| {
+                idxs[num_idx] = byte_idx.0;
+                num_idx + 1
+            });
+
+        // Extract data
+        let grid_rating_voltage = f32::from_str(from_utf8(&src[0..idxs[0]])?)?;
+        let grid_rating_current = f32::from_str(from_utf8(&src[idxs[0] + 1..idxs[1]])?)?;
+
+        Ok(Self {
+            grid_rating_voltage,
+            grid_rating_current
         })
     }
 }
