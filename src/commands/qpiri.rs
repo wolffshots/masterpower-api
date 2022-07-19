@@ -224,7 +224,7 @@ impl Response for QPIRIResponse {
 
 impl Response for QPIRIReducedResponse {
     fn decode(src: &mut BytesMut) -> Result<Self> {
-        // println!("Input: {:?}", from_utf8(&src)?);
+        println!("Input: {:?}", from_utf8(&src)?);
 
         // Extract indices
         let mut idxs = [0usize; 30];
@@ -268,7 +268,7 @@ mod test {
     use crate::commands::qpiri::Topology::{Transformer, Transformerless};
     use crate::commands::qpiri::{
         BatteryType, ChargeSourcePriority, InputVoltageRange, MachineType, OutputMode,
-        OutputSourcePriority, QPIRIResponse, Topology, QPIRI,
+        OutputSourcePriority, QPIRIResponse, QPIRIReducedResponse, Topology, QPIRI, QPIRIReduced
     };
     use crate::error::Result;
     use bytes::{Buf, BytesMut};
@@ -468,6 +468,44 @@ mod test {
                         _ => unreachable!(),
                     },
                     battery_redischarge_voltage
+                })
+            );
+        }
+
+        Ok(())
+    }
+
+    #[test]
+    fn test_qpiri_reduced_command_decode() -> Result<()> {
+        let mut codec = Codec::<QPIRIReduced>::new();
+
+        for _ in 0..1000 {
+            let mut rng = thread_rng();
+
+            let grid_rating_voltage: f32 = (rng.gen_range(0.0, 500.0) * 10.0f32).floor() / 10.0;
+            let grid_rating_current: f32 = (rng.gen_range(0.0, 500.0) * 10.0f32).floor() / 10.0;
+
+            let mut res = format!(
+                // 230.0  13.0    230.0   50.0    13.0    3000  2400  24.0    23.0    21.0    28.2    27.0    0     30    60    0      0    0     -  01     1     0     27.0   0 0
+                "({} {} 230.0 50.0 13.0 3000 2400 24.0 23.0 21.0 28.2 27.0 0 30 60 0 0 0 01 1 0 27.0 0 0",
+                grid_rating_voltage,
+                grid_rating_current,
+            )
+            .into_bytes();
+            let mut crc_sum = CRCu16::crc16xmodem();
+            crc_sum.digest(res.as_slice());
+            res.extend_from_slice(crc_sum.get_crc().to_be_bytes().as_ref());
+            res.push(b'\r');
+
+            let mut buf = BytesMut::from(res.as_slice());
+            let item = codec.decode(&mut buf)?;
+
+            assert_eq!(buf.remaining(), 0);
+            assert_eq!(
+                item,
+                Some(QPIRIReducedResponse {
+                    grid_rating_voltage,
+                    grid_rating_current
                 })
             );
         }
