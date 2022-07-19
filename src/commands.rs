@@ -1,8 +1,8 @@
 pub mod qid;
 pub mod qmod;
+pub mod qpgs;
 pub mod qpi;
 pub mod qpigs;
-pub mod qpgs;
 pub mod qpiri;
 pub mod qpiws;
 pub mod qvfw;

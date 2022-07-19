@@ -8,7 +8,7 @@ pub type Result<T> = result::Result<T, Error>;
 #[derive(Debug)]
 pub enum Error {
     InvalidResponsePrefix,
-    InvalidResponseCrcSum,
+    InvalidResponseCrcSum(u16, u16),
     InvalidResponseFormat,
 
     InvalidPayload(Option<Box<dyn std::error::Error>>),
@@ -20,6 +20,9 @@ pub enum Error {
 
     // QPIGS
     InvalidDeviceStatus,
+
+    // QPIGS
+    // TODO: add extra error cases for QPGS command
 
     // QPIRI
     InvalidDeviceBatteryType,

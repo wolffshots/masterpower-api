@@ -2,7 +2,7 @@ use crate::codec::Codec;
 use crate::command::Command;
 use crate::error::{Error, Result};
 use bytes::{Buf, BytesMut};
-use log::{trace,debug};
+use log::trace;
 use tokio::io::{AsyncRead, AsyncWrite, ErrorKind};
 use tokio::prelude::*;
 use tokio_util::codec::{Decoder, Encoder};
@@ -32,7 +32,7 @@ where
     S: AsyncRead + AsyncWrite + Unpin,
 {
     #[allow(unused)]
-    pub async fn execute<C: Command>(&mut self, req: C::Request, index: i8) -> Result<C::Response> {
+    pub async fn execute<C: Command>(&mut self, req: C::Request) -> Result<C::Response> {
         // TODO: Find a way to use the `Framed` facility.
 
         // Encode the message.
@@ -44,18 +44,17 @@ where
         trace!("Writing command to stream");
         self.stream.flush().await?;
         self.stream.write_all(buf.bytes()).await?;
-        debug!("Command written successfully");
 
-        debug!("Buffer contents before first read: {:?}", self.buffer_in);
+        trace!(
+            "Command written successfully. Buffer contents before first read: {:?}",
+            self.buffer_in
+        );
         Ok(loop {
             self.buffer_in.reserve(1024);
             let len = self.stream.read_buf(&mut self.buffer_in).await?;
             if len == 0 {
                 return Err(Error::Io(ErrorKind::UnexpectedEof.into()));
             }
-
-            debug!("Read {} bytes from stream", len);
-            debug!("Calling decode with stream: {:?}", self.buffer_in);
 
             if let Some(item) = codec.decode(&mut self.buffer_in)? {
                 break item;
