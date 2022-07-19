@@ -7,12 +7,19 @@ use std::str::from_utf8;
 use std::str::FromStr;
 
 pub struct QPGS0;
-pub struct QPGS2;
 pub struct QPGS1;
+pub struct QPGS2;
+pub struct QPGS3;
+pub struct QPGS4;
+pub struct QPGS5;
+pub struct QPGS6;
+pub struct QPGS7;
+pub struct QPGS8;
+pub struct QPGS9;
 
 impl Command for QPGS0 {
     const PROTOCOL_ID: &'static [u8] = b"QPGS0";
-    const COMMAND_NAME: &'static str = "QueryDeviceGeneralStatusCurrent";
+    const COMMAND_NAME: &'static str = "QueryDeviceGeneralStatus0";
 
     type Request = ();
     type Response = QPGSResponse;
@@ -20,7 +27,7 @@ impl Command for QPGS0 {
 
 impl Command for QPGS1 {
     const PROTOCOL_ID: &'static [u8] = b"QPGS1";
-    const COMMAND_NAME: &'static str = "QueryDeviceGeneralStatusPrimary";
+    const COMMAND_NAME: &'static str = "QueryDeviceGeneralStatus1";
 
     type Request = ();
     type Response = QPGSResponse;
@@ -28,7 +35,63 @@ impl Command for QPGS1 {
 
 impl Command for QPGS2 {
     const PROTOCOL_ID: &'static [u8] = b"QPGS2";
-    const COMMAND_NAME: &'static str = "QueryDeviceGeneralStatusSecondary";
+    const COMMAND_NAME: &'static str = "QueryDeviceGeneralStatus2";
+
+    type Request = ();
+    type Response = QPGSResponse;
+}
+
+impl Command for QPGS3 {
+    const PROTOCOL_ID: &'static [u8] = b"QPGS3";
+    const COMMAND_NAME: &'static str = "QueryDeviceGeneralStatus3";
+
+    type Request = ();
+    type Response = QPGSResponse;
+}
+
+impl Command for QPGS4 {
+    const PROTOCOL_ID: &'static [u8] = b"QPGS4";
+    const COMMAND_NAME: &'static str = "QueryDeviceGeneralStatus4";
+
+    type Request = ();
+    type Response = QPGSResponse;
+}
+
+impl Command for QPGS5 {
+    const PROTOCOL_ID: &'static [u8] = b"QPGS5";
+    const COMMAND_NAME: &'static str = "QueryDeviceGeneralStatus5";
+
+    type Request = ();
+    type Response = QPGSResponse;
+}
+
+impl Command for QPGS6 {
+    const PROTOCOL_ID: &'static [u8] = b"QPGS6";
+    const COMMAND_NAME: &'static str = "QueryDeviceGeneralStatus6";
+
+    type Request = ();
+    type Response = QPGSResponse;
+}
+
+impl Command for QPGS7 {
+    const PROTOCOL_ID: &'static [u8] = b"QPGS7";
+    const COMMAND_NAME: &'static str = "QueryDeviceGeneralStatus7";
+
+    type Request = ();
+    type Response = QPGSResponse;
+}
+
+impl Command for QPGS8 {
+    const PROTOCOL_ID: &'static [u8] = b"QPGS8";
+    const COMMAND_NAME: &'static str = "QueryDeviceGeneralStatus8";
+
+    type Request = ();
+    type Response = QPGSResponse;
+}
+
+impl Command for QPGS9 {
+    const PROTOCOL_ID: &'static [u8] = b"QPGS9";
+    const COMMAND_NAME: &'static str = "QueryDeviceGeneralStatus9";
 
     type Request = ();
     type Response = QPGSResponse;
